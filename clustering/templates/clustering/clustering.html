@@ -21,13 +21,36 @@
         </div>
     </div>
 
-    <!-- Tabel Hasil Clustering -->
+    <!-- Data Tiap Cluster -->
+    {% for c in clusters %}
     <div class="card mb-4">
-        <div class="card-header bg-dark text-white">Data Hasil Clustering</div>
+        <div class="card-header bg-dark text-white">
+            Cluster {{ c.id }}
+        </div>
         <div class="card-body">
-            {{ hasil_cluster|safe }}
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Age</th>
+                        <th>Income</th>
+                        <th>Spending</th>
+                        <th>Cluster</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in c.data %}
+                    <tr>
+                        <td>{{ row.age }}</td>
+                        <td>{{ row.income }}</td>
+                        <td>{{ row.spending }}</td>
+                        <td>{{ row.cluster }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+    {% endfor %}
 
 </div>
 {% endblock %}
