@@ -3,15 +3,7 @@
 {% block content %}
 <div class="container">
 
-    <h2 class="mb-3">Hasil Clustering (K = {{ k }})</h2>
-
-    <!-- Plot Cluster -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">Visualisasi Cluster</div>
-        <div class="card-body text-center">
-            <img src="data:image/png;base64,{{ cluster_plot }}" class="img-fluid" />
-        </div>
-    </div>
+    
 
     <!-- Summary Cluster -->
     <div class="card mb-4">
@@ -22,10 +14,12 @@
     </div>
 
     <!-- Data Tiap Cluster -->
-    {% for c in clusters %}
+    {% for c, rows in cluster_groups.items %}
+
+
     <div class="card mb-4">
         <div class="card-header bg-dark text-white">
-            Cluster {{ c.id }}
+            Cluster {{ c }}
         </div>
         <div class="card-body">
             <table class="table table-bordered table-sm">
@@ -38,11 +32,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in c.data %}
+                    {% for row in rows %}
                     <tr>
                         <td>{{ row.age }}</td>
-                        <td>{{ row.income }}</td>
-                        <td>{{ row.spending }}</td>
+                        <td>{{ row.Pendapatan }}</td>
+                        <td>{{ row.Pengeluaran }}</td>
                         <td>{{ row.cluster }}</td>
                     </tr>
                     {% endfor %}

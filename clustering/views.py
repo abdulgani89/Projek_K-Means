@@ -51,7 +51,7 @@ def proses_kmeans(request):
 
     k = int(request.session.get("k", 3))
 
-    # Standardisasi nama kolom
+    # Standardisasi kolom
     df = df.rename(columns={
         "Age": "age",
         "Annual Income (k$)": "income",
@@ -60,7 +60,7 @@ def proses_kmeans(request):
 
     X = df[['age', 'income', 'spending']].values
 
-    # Hitung centroid awal (manual)
+    # Centroid awal manual
     np.random.seed(0)
     initial_centroids = X[np.random.choice(X.shape[0], k, replace=False)]
 
@@ -69,11 +69,7 @@ def proses_kmeans(request):
     labels = np.argmin(distances, axis=1)
 
     distance_df = pd.DataFrame(distances, columns=[f"C{i}" for i in range(k)])
-
-    centroid_awal = pd.DataFrame(
-        initial_centroids, columns=['age', 'income', 'spending']
-    )
-
+    centroid_awal = pd.DataFrame(initial_centroids, columns=['age', 'income', 'spending'])
     centroid_akhir = pd.DataFrame(
         [X[labels == i].mean(axis=0) for i in range(k)],
         columns=['age', 'income', 'spending']
@@ -94,47 +90,13 @@ def proses_kmeans(request):
 
 
 # =================================================
-# 3️⃣ METODE ELBOW
-# =================================================
-def elbow(request):
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    df = pd.read_csv(os.path.join(BASE_DIR, 'clustering', 'Mall_Customers.csv'))
-
-    df = df.rename(columns={
-        "Age": "age",
-        "Annual Income (k$)": "income",
-        "Spending Score (1-100)": "spending"
-    })
-
-    X = df[['age', 'income', 'spending']].values
-
-    wcss_list = []
-    for i in range(1, 11):
-        _, _, wcss = kmeans(X, i)
-        wcss_list.append(wcss)
-
-    fig, ax = plt.subplots()
-    ax.plot(range(1, 11), wcss_list, marker='o')
-    ax.set_title("Metode Elbow")
-    ax.set_xlabel("Jumlah Cluster")
-    ax.set_ylabel("WCSS")
-
-    buffer = BytesIO()
-    plt.savefig(buffer, format="png")
-    elbow_plot = base64.b64encode(buffer.getvalue()).decode()
-    plt.close()
-
-    return render(request, 'clustering/elbow.html', {'elbow_plot': elbow_plot})
-
-
-# =================================================
-# 4️⃣ HALAMAN UTAMA CLUSTERING
+# 3️⃣ HALAMAN CLUSTERING (HASIL AKHIR)
 # =================================================
 def clustering(request):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     df = pd.read_csv(os.path.join(BASE_DIR, 'clustering', 'Mall_Customers.csv'))
 
-    # Rename kolom agar aman
+    # Standardisasi kolom
     df = df.rename(columns={
         "Age": "age",
         "Annual Income (k$)": "income",
@@ -148,23 +110,35 @@ def clustering(request):
     labels, centroids, wcss = kmeans(X, k)
     df["cluster"] = labels
 
-    # Kelompokkan data per cluster
-    cluster_groups = []
+    # ---------------------------------------------
+    # BENTUKKAN dictionary DATA PER CLUSTER
+    # ---------------------------------------------
+    cluster_groups = {}
     for i in range(k):
-        cluster_groups.append({
-            "id": i,
-            "data": df[df["cluster"] == i].to_dict("records")
+        data_cluster_i = df[df["cluster"] == i][["age", "income", "spending", "cluster"]]
+
+
+        # Samakan nama kolom dengan yang dipakai template
+        data_cluster_i = data_cluster_i.rename(columns={
+            "income": "Pendapatan",
+            "spending": "Pengeluaran"
         })
 
-    # Plot cluster
+        cluster_groups[i] = data_cluster_i.to_dict("records")
+
+        
+
+    # ---------------------------------------------
+    # PLOT CLUSTER
+    # ---------------------------------------------
     fig, ax = plt.subplots()
     for i in range(k):
-        ax.scatter(X[labels == i, 0], X[labels == i, 2], label=f"Cluster {i}")
+        ax.scatter(X[labels == i, 1], X[labels == i, 2], label=f"Cluster {i}")
 
-    ax.scatter(centroids[:, 0], centroids[:, 2], s=200, c='black', marker='X')
+    ax.scatter(centroids[:, 1], centroids[:, 2], s=200, c='black', marker='X')
     ax.set_title("Visualisasi Cluster")
-    ax.set_xlabel("Age")
-    ax.set_ylabel("Spending")
+    ax.set_xlabel("Pendapatan (Income)")
+    ax.set_ylabel("Pengeluaran (Spending)")
     ax.legend()
 
     buffer = BytesIO()
@@ -172,18 +146,19 @@ def clustering(request):
     cluster_plot = base64.b64encode(buffer.getvalue()).decode()
     plt.close()
 
+    # Summary cluster
     summary = df.groupby("cluster")[['age', 'income', 'spending']].mean().astype(int)
 
     return render(request, 'clustering/clustering.html', {
         'cluster_plot': cluster_plot,
         'summary': summary.to_html(classes="table table-bordered"),
-        'clusters': cluster_groups,
+        'cluster_groups': cluster_groups,
         'k': k,
     })
 
 
 # =================================================
-# 5️⃣ KESIMPULAN
+# 4️⃣ KESIMPULAN
 # =================================================
 def kesimpulan(request):
     return render(request, 'clustering/kesimpulan.html', {
