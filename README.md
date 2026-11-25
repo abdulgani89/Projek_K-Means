@@ -51,9 +51,9 @@ Analisis pengelompokan data sering kali hanya berhenti di notebook dan sulit dig
 | Kategori | Teknologi |
 | :--- | :--- |
 | **Backend** | Python, Django |
-| **Machine Learning & Data** | `[isi sesuai requirements.txt, mis. Scikit-learn, Pandas, NumPy]` |
-| **Visualisasi** | `[mis. Matplotlib / Chart.js / Plotly]` |
-| **Frontend** | HTML5, CSS3, `[mis. Bootstrap / Tailwind CSS]` |
+| **Machine Learning & Data** | `Scikit-learn, Pandas, NumPy` |
+| **Visualisasi** |  Matplotlib  |
+| **Frontend** | HTML5, CSS3, `Bootstrap ` |
 | **Database** | SQLite (Development) |
 
 ---
